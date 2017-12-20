@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.anfema.breadcrumb.scrolling.BreadcrumbScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".Layout2Activity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btn_level3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="To Level 3"/>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/rv"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_margin="50dp"
+            android:background="@android:color/holo_purple"
+            android:nestedScrollingEnabled="false"
+            android:visibility="visible"/>
+    </LinearLayout>
+
+</com.anfema.breadcrumb.scrolling.BreadcrumbScrollView>

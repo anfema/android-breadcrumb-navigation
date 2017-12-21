@@ -3,13 +3,23 @@ package com.anfema.breadcrumb.scrolling
 import android.animation.Animator
 import android.animation.ObjectAnimator
 import android.content.Context
+import android.support.v4.widget.NestedScrollView
 import android.util.AttributeSet
 import android.view.MotionEvent
+import android.view.View
 import android.view.ViewGroup
+import android.view.animation.AccelerateDecelerateInterpolator
+import android.view.animation.DecelerateInterpolator
+import android.view.animation.Interpolator
 import kotlin.math.max
 
-class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : OnEndScrollView(context, attrs, defStyle), OnBreadcrumbActiveListener
+class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : NestedScrollView(context, attrs, defStyle), OnBreadcrumbActiveListener
 {
+    init
+    {
+        overScrollMode = View.OVER_SCROLL_NEVER
+    }
+
     val breadcrumbHeight by lazy {
         BreadcrumbInject.breadcrumbHeight
     }
@@ -44,38 +54,20 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
         fun onBreadcrumbSelected(position: Int)
     }
 
-    init
-    {
-        onEndScrollListener = object : OnEndScrollListener
-        {
-            override fun onEndScroll()
-            {
-                checkReturnFromOverscroll()
-            }
-        }
-    }
-
-    private fun checkReturnFromOverscroll(): Boolean
-    {
-        val isOverscrolled = isOverScrolled()
-        if (isOverscrolled)
-        {
-            animateToInitialScrollState()
-        }
-        return isOverscrolled
-    }
-
-    private fun isOverScrolled() = scrollY < initialScroll || scrollY < initialScroll + breadcrumbHeight
+    private fun isBreadcrumbsVisible() = scrollY < initialScroll
 
     private var isAnimating = false
-    fun animateToInitialScrollState()
+    fun animateToInitialScrollState(interpolator: Interpolator)
     {
+        fling(0)
         if (!isAnimating)
         {
             isAnimating = true
 
             val animator = ObjectAnimator.ofInt(this, "scrollY", initialScroll)
                     .setDuration(300)
+
+            animator.interpolator = interpolator
 
             animator.addListener(object : Animator.AnimatorListener
             {
@@ -106,7 +98,13 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
     private var selectedBreadcrumbActive = false
     override fun onScrollChanged(x: Int, y: Int, oldX: Int, oldY: Int)
     {
-        super.onScrollChanged(x, scrollY, oldX, oldY)
+        super.onScrollChanged(x, y, oldX, oldY)
+
+        if (!isTouchActive && isBreadcrumbsVisible())
+        {
+            postDelayed({ animateToInitialScrollState(AccelerateDecelerateInterpolator()) }, 100)
+        }
+
         val newBreadcrumpSelected = (y + breadcrumbHeight / 2) / breadcrumbHeight
         if (newBreadcrumpSelected != selectedBreadcrumbPosition)
         {
@@ -129,13 +127,29 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
         return contentView.getChildAt(position) as? Breadcrumb
     }
 
+    var isTouchActive = false
     override fun onTouchEvent(event: MotionEvent): Boolean
     {
         val onTouchEvent = super.onTouchEvent(event)
 
-        if (event.actionMasked == MotionEvent.ACTION_UP && positionedAtBreadcrumb(selectedBreadcrumbPosition) && selectedBreadcrumbActive)
+        if (event.actionMasked == MotionEvent.ACTION_DOWN)
         {
-            onBreadcrumbSelectedListener?.onBreadcrumbSelected(selectedBreadcrumbPosition)
+            isTouchActive = true
+        }
+
+        if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL)
+        {
+            isTouchActive = false
+
+            if (isBreadcrumbsVisible())
+            {
+                animateToInitialScrollState(DecelerateInterpolator())
+            }
+
+            if (positionedAtBreadcrumb(selectedBreadcrumbPosition) && selectedBreadcrumbActive)
+            {
+                onBreadcrumbSelectedListener?.onBreadcrumbSelected(selectedBreadcrumbPosition)
+            }
         }
 
         return onTouchEvent

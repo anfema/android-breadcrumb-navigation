@@ -27,7 +27,7 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
     private val initialScroll: Int
         get()
         {
-            return max(0, breadcrumbHeight * (breadcrumbTitles.size - 1))
+            return max(0, breadcrumbHeight * breadcrumbTitles.size)
         }
 
     val contentView by lazy { getChildAt(0) as ViewGroup }
@@ -155,7 +155,7 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
         return onTouchEvent
     }
 
-    private fun positionedAtBreadcrumb(breadcrumbPosition: Int) = breadcrumbPosition >= 0 && breadcrumbPosition < breadcrumbTitles.size - 1
+    private fun positionedAtBreadcrumb(breadcrumbPosition: Int) = breadcrumbPosition >= 0 && breadcrumbPosition < breadcrumbTitles.size
 
     override fun onSelectedBreadcrumbActive()
     {

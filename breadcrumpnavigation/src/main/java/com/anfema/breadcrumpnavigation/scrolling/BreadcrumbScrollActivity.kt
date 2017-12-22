@@ -31,7 +31,7 @@ abstract class BreadcrumbScrollActivity : BreadcrumbActivity()
             contentView.viewTreeObserver.addOnGlobalLayoutListener {
                 val contentLp = contentView.layoutParams as FrameLayout.LayoutParams
                 val contentViewTotalHeight = contentView.height + contentLp.topMargin + contentLp.bottomMargin
-                val breadcrumbsOverscrollHeight = (scrollView.breadcrumbTitles.size - 1) * scrollView.breadcrumbHeight
+                val breadcrumbsOverscrollHeight = scrollView.breadcrumbTitles.size * scrollView.breadcrumbHeight
                 val spaceToFill = scrollView.height - (contentViewTotalHeight - breadcrumbsOverscrollHeight)
                 if (spaceToFill > 0)
                 {
@@ -49,7 +49,7 @@ abstract class BreadcrumbScrollActivity : BreadcrumbActivity()
             {
                 override fun onBreadcrumbSelected(position: Int)
                 {
-                    breadcrumbHelper.goBackMultipleSteps(scrollView.breadcrumbTitles.size - 1 - position)
+                    breadcrumbHelper.goBackMultipleSteps(scrollView.breadcrumbTitles.size - position)
                 }
             }
         }

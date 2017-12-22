@@ -43,12 +43,18 @@ class BreadcrumbComponentHelper(private val breadcrumbComponent: BreadcrumpCompo
     {
         intent.putExtra(BREADCRUMB_PARENT_INTENT, breadcrumbComponent.getIntent())
         intent.putExtra(BREADCRUMB_BACK_STEPS_REMAINING, 0)
-        intent.putExtra(BREADCRUMB_PARENT_TRAIL, getBreadcrumbTrail(breadcrumbComponent.getIntent()))
+        val breadcrumbTrail = getBreadcrumbTrail(breadcrumbComponent.getIntent())
+        val nextBreadcrumbTrail = addCurrentTitleToBreadcrumbs(breadcrumbTrail)
+        intent.putExtra(BREADCRUMB_TRAIL, nextBreadcrumbTrail)
     }
 
     fun getBreadcrumbTrail(intent: Intent?): java.util.ArrayList<String>
     {
-        val parentTitles = intent?.getStringArrayListExtra(BREADCRUMB_PARENT_TRAIL) ?: ArrayList()
+        return intent?.getStringArrayListExtra(BREADCRUMB_TRAIL) ?: ArrayList()
+    }
+
+    private fun addCurrentTitleToBreadcrumbs(parentTitles: java.util.ArrayList<String>): ArrayList<String>
+    {
         val breadcrumbTitles = ArrayList(parentTitles)
         breadcrumbTitles.add(breadcrumbComponent.getBreadcrumbTitle())
         return breadcrumbTitles
@@ -58,6 +64,6 @@ class BreadcrumbComponentHelper(private val breadcrumbComponent: BreadcrumpCompo
     {
         private const val BREADCRUMB_PARENT_INTENT = "BREADCRUMB_PARENT_INTENT"
         private const val BREADCRUMB_BACK_STEPS_REMAINING = "BREADCRUMB_BACK_STEPS_REMAINING"
-        private const val BREADCRUMB_PARENT_TRAIL = "BREADCRUMB_PARENT_TRAIL"
+        private const val BREADCRUMB_TRAIL = "BREADCRUMB_TRAIL"
     }
 }

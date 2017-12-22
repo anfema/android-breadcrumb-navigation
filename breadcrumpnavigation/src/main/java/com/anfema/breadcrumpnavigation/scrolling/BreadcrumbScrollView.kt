@@ -11,6 +11,8 @@ import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.Interpolator
+import com.anfema.breadcrumpnavigation.BreadcrumbNavigation
+import com.anfema.breadcrumpnavigation.scrolling.OnBreadcrumbExpandedListener
 import kotlin.math.max
 
 class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : NestedScrollView(context, attrs, defStyle), OnBreadcrumbActiveListener
@@ -36,18 +38,27 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
         set(value)
         {
             field = value
-            value.reversed().forEach {
+            value.reversed().forEachIndexed { index, title ->
                 val bcv = BreadcrumbInject.breadcrumbView.invoke(context, this)
-                bcv.setText(it)
+                bcv.setText(title)
                 contentView.addView(bcv.view, 0)
                 val lp = bcv.view.layoutParams
                 lp.height = breadcrumbHeight
                 bcv.view.layoutParams = lp
+                bcv.view.setOnClickListener {
+                    if (breadcrumbsExpanded)
+                    {
+                        bcv.onActive()
+                        breadcrumbNavigation?.goBackMultipleSteps(value.size - index)
+                    }
+                }
             }
             jumpToInitialScrollState()
         }
 
+    var onBreadcrumbExpandedListener: OnBreadcrumbExpandedListener? = null
     var onBreadcrumbSelectedListener: OnBreadcrumbSelectedListener? = null
+    var breadcrumbNavigation: BreadcrumbNavigation? = null
 
     interface OnBreadcrumbSelectedListener
     {
@@ -56,12 +67,15 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
 
     private fun isBreadcrumbsVisible() = scrollY < initialScroll
 
+    var breadcrumbsExpanded = false
     private var isAnimating = false
     fun animateToInitialScrollState(interpolator: Interpolator)
     {
-        fling(0)
-        if (!isAnimating)
+        if (!isAnimating && !breadcrumbsExpanded)
         {
+            // stop fling
+            fling(0)
+
             isAnimating = true
 
             val animator = ObjectAnimator.ofInt(this, "scrollY", initialScroll)
@@ -83,7 +97,6 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
 
                 override fun onAnimationStart(p0: Animator?) = Unit
                 override fun onAnimationRepeat(p0: Animator?) = Unit
-
             })
             animator.start()
         }
@@ -94,6 +107,11 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
         post { scrollTo(0, initialScroll) }
     }
 
+    fun expandBreadcrumbs()
+    {
+        post { scrollTo(0, 0) }
+    }
+
     private var selectedBreadcrumbPosition = -1
     private var selectedBreadcrumbActive = false
     override fun onScrollChanged(x: Int, y: Int, oldX: Int, oldY: Int)
@@ -102,10 +120,25 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
 
         if (!isTouchActive && isBreadcrumbsVisible())
         {
+            // bounce back to initial scroll state (hide breadcrumbs)
             postDelayed({ animateToInitialScrollState(AccelerateDecelerateInterpolator()) }, 100)
         }
 
-        val newBreadcrumpSelected = (y + breadcrumbHeight / 2) / breadcrumbHeight
+        if (!breadcrumbsExpanded)
+        {
+            updateBreadcrumbSelectionState(y)
+        }
+
+        if (isTouchActive && breadcrumbsExpanded)
+        {
+            breadcrumbsExpanded = false
+            onBreadcrumbExpandedListener?.onBreadcrumbCollapsed()
+        }
+    }
+
+    private fun updateBreadcrumbSelectionState(scrollY: Int)
+    {
+        val newBreadcrumpSelected = (scrollY + breadcrumbHeight / 2) / breadcrumbHeight
         if (newBreadcrumpSelected != selectedBreadcrumbPosition)
         {
             if (positionedAtBreadcrumb(newBreadcrumpSelected))

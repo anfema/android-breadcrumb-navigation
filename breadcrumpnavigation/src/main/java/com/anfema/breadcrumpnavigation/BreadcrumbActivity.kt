@@ -7,7 +7,7 @@ import android.support.v7.app.AppCompatActivity
 /**
  * If you cannot inherit your from [BreadcrumbActivity] directly, use [BreadcrumbComponentHelper].
  */
-abstract class BreadcrumbActivity : AppCompatActivity(), BreadcrumbComponentHelper.BreadcrumpComponent
+abstract class BreadcrumbActivity : AppCompatActivity(), BreadcrumpComponent, BreadcrumbNavigation
 {
     protected lateinit var breadcrumbHelper: BreadcrumbComponentHelper
 
@@ -27,5 +27,10 @@ abstract class BreadcrumbActivity : AppCompatActivity(), BreadcrumbComponentHelp
     override fun normalStartActivity(intent: Intent)
     {
         super.startActivity(intent)
+    }
+
+    override fun goBackMultipleSteps(steps: Int)
+    {
+        breadcrumbHelper.goBackMultipleSteps(steps)
     }
 }

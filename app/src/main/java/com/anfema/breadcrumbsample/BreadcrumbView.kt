@@ -59,6 +59,7 @@ class BreadcrumbView(context: Context, override var onBreadcrumbActiveListener: 
         }
     }
 
+    @Suppress("DEPRECATION")
     private fun vibrate()
     {
         val vibrator = context.getSystemService(VIBRATOR_SERVICE) as Vibrator

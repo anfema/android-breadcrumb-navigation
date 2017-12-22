@@ -4,10 +4,14 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import com.anfema.breadcrumb.scrolling.BreadcrumbScrollActivity
+import com.anfema.breadcrumpnavigation.scrolling.NoExpandIconCallbacks
+import com.anfema.breadcrumpnavigation.scrolling.OnBreadcrumbExpandedListener
 import kotlinx.android.synthetic.main.activity_layout2.*
 
-class Layout2Activity : BreadcrumbScrollActivity()
+class Layout2Activity : BreadcrumbScrollActivity(), OnBreadcrumbExpandedListener by NoExpandIconCallbacks()
 {
+    override val expandIconView = null
+
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)

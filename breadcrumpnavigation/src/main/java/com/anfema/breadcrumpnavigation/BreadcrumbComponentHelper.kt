@@ -2,15 +2,8 @@ package com.anfema.breadcrumpnavigation
 
 import android.content.Intent
 
-class BreadcrumbComponentHelper(private val breadcrumbComponent: BreadcrumpComponent)
+class BreadcrumbComponentHelper(private val breadcrumbComponent: BreadcrumpComponent) : BreadcrumbNavigation
 {
-    interface BreadcrumpComponent
-    {
-        fun getIntent(): Intent?
-        fun finish()
-        fun normalStartActivity(intent: Intent)
-        fun getBreadcrumbTitle(): String
-    }
 
     fun checkIfGoBackIntent()
     {
@@ -21,7 +14,7 @@ class BreadcrumbComponentHelper(private val breadcrumbComponent: BreadcrumpCompo
         }
     }
 
-    fun goBackMultipleSteps(steps: Int)
+    override fun goBackMultipleSteps(steps: Int)
     {
         when
         {

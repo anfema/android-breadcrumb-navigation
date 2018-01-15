@@ -25,7 +25,7 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jre7:$kotlin_version"
     implementation 'com.android.support:appcompat-v7:26.1.0'
 
-    implementation project(':breadcrumpnavigation')
+    implementation project(':breadcrumbnavigation')
 
     implementation 'com.android.support:recyclerview-v7:26.1.0'
 

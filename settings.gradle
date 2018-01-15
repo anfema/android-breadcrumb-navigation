@@ -1,1 +1,1 @@
-include ':app', ':breadcrumpnavigation'
+include ':app', ':breadcrumbnavigation'

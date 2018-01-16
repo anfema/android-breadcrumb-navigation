@@ -2,7 +2,7 @@ package com.anfema.breadcrumpnavigation
 
 import android.content.Intent
 
-open class BreadcrumbComponentHelper(private val breadcrumbComponent: BreadcrumbComponent) : BreadcrumbNavigation
+open class BreadcrumbActivityHelper(private val breadcrumbComponent: BreadcrumbComponent) : BreadcrumbNavigation
 {
 
     fun checkIfGoBackIntent()
@@ -26,18 +26,18 @@ open class BreadcrumbComponentHelper(private val breadcrumbComponent: Breadcrumb
                 breadcrumbComponent.getIntent()?.getParcelableExtra<Intent>(BREADCRUMB_PARENT_INTENT)?.let {
                     it.putExtra(BREADCRUMB_BACK_STEPS_REMAINING, steps - 1)
                     it.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
-                    breadcrumbComponent.normalStartActivity(it)
+                    breadcrumbComponent.startActivity(it)
                 }
             }
         }
     }
 
-    fun addBreadcrumbEssentials(intent: Intent)
+    fun addBreadcrumbEssentials(intent: Intent, breadcrumbTitle: String)
     {
         intent.putExtra(BREADCRUMB_PARENT_INTENT, breadcrumbComponent.getIntent())
         intent.putExtra(BREADCRUMB_BACK_STEPS_REMAINING, 0)
         val breadcrumbTrail = getBreadcrumbTrail(breadcrumbComponent.getIntent())
-        val nextBreadcrumbTrail = addCurrentTitleToBreadcrumbs(breadcrumbTrail)
+        val nextBreadcrumbTrail = addCurrentTitleToBreadcrumbs(breadcrumbTrail, breadcrumbTitle)
         intent.putExtra(BREADCRUMB_TRAIL, nextBreadcrumbTrail)
     }
 
@@ -46,10 +46,10 @@ open class BreadcrumbComponentHelper(private val breadcrumbComponent: Breadcrumb
         return intent?.getStringArrayListExtra(BREADCRUMB_TRAIL) ?: ArrayList()
     }
 
-    private fun addCurrentTitleToBreadcrumbs(parentTitles: java.util.ArrayList<String>): ArrayList<String>
+    private fun addCurrentTitleToBreadcrumbs(parentTitles: java.util.ArrayList<String>, breadcrumbTitle: String): ArrayList<String>
     {
         val breadcrumbTitles = ArrayList(parentTitles)
-        breadcrumbTitles.add(breadcrumbComponent.getBreadcrumbTitle())
+        breadcrumbTitles.add(breadcrumbTitle)
         return breadcrumbTitles
     }
 

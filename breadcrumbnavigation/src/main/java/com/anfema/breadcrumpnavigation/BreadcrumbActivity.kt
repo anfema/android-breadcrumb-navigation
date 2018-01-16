@@ -18,14 +18,9 @@ abstract class BreadcrumbActivity : AppCompatActivity(), BreadcrumbComponent, Br
         breadcrumbHelper.checkIfGoBackIntent()
     }
 
-    override fun startActivity(intent: Intent)
+    override fun startBreadcrumbActivity(intent: Intent, breadcrumbTitle: String, options: Bundle?)
     {
-        breadcrumbHelper.addBreadcrumbEssentials(intent)
-        super.startActivity(intent)
-    }
-
-    override fun normalStartActivity(intent: Intent)
-    {
+        breadcrumbHelper.addBreadcrumbEssentials(intent, breadcrumbTitle)
         super.startActivity(intent)
     }
 

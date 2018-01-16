@@ -2,7 +2,7 @@ package com.anfema.breadcrumpnavigation
 
 import android.content.Intent
 
-interface BreadcrumpComponent
+interface BreadcrumbComponent
 {
     fun getIntent(): Intent?
     fun finish()

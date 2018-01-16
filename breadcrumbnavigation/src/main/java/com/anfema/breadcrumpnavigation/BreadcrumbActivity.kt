@@ -5,16 +5,16 @@ import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 
 /**
- * If you cannot inherit your from [BreadcrumbActivity] directly, use [BreadcrumbComponentHelper].
+ * If you cannot inherit your from [BreadcrumbActivity] directly, use [BreadcrumbActivityHelper].
  */
-abstract class BreadcrumbActivity : AppCompatActivity(), BreadcrumpComponent, BreadcrumbNavigation
+abstract class BreadcrumbActivity : AppCompatActivity(), BreadcrumbComponent, BreadcrumbNavigation
 {
-    protected lateinit var breadcrumbHelper: BreadcrumbComponentHelper
+    protected lateinit var breadcrumbHelper: BreadcrumbActivityHelper
 
     override fun onCreate(savedInstanceState: Bundle?)
     {
         super.onCreate(savedInstanceState)
-        breadcrumbHelper = BreadcrumbComponentHelper(this)
+        breadcrumbHelper = BreadcrumbActivityHelper(this)
         breadcrumbHelper.checkIfGoBackIntent()
     }
 

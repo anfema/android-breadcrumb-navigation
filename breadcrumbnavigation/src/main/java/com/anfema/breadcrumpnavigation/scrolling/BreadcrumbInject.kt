@@ -1,4 +1,4 @@
-package com.anfema.breadcrumb.scrolling
+package com.anfema.breadcrumpnavigation.scrolling
 
 import android.content.Context
 

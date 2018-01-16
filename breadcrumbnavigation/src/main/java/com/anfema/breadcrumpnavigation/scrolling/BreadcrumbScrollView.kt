@@ -1,4 +1,4 @@
-package com.anfema.breadcrumb.scrolling
+package com.anfema.breadcrumpnavigation.scrolling
 
 import android.animation.Animator
 import android.animation.ObjectAnimator
@@ -12,7 +12,6 @@ import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.Interpolator
 import com.anfema.breadcrumpnavigation.BreadcrumbNavigation
-import com.anfema.breadcrumpnavigation.scrolling.OnBreadcrumbExpandedListener
 import kotlin.math.max
 
 class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : NestedScrollView(context, attrs, defStyle), OnBreadcrumbActiveListener

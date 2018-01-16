@@ -2,7 +2,7 @@ package com.anfema.breadcrumpnavigation
 
 import android.content.Intent
 
-class BreadcrumbComponentHelper(private val breadcrumbComponent: BreadcrumpComponent) : BreadcrumbNavigation
+open class BreadcrumbComponentHelper(private val breadcrumbComponent: BreadcrumbComponent) : BreadcrumbNavigation
 {
 
     fun checkIfGoBackIntent()

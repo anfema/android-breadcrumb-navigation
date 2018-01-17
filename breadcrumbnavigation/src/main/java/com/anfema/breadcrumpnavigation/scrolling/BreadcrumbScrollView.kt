@@ -11,31 +11,19 @@ import android.view.ViewGroup
 import android.view.animation.AccelerateDecelerateInterpolator
 import android.view.animation.DecelerateInterpolator
 import android.view.animation.Interpolator
+import android.widget.FrameLayout
 import com.anfema.breadcrumpnavigation.BreadcrumbNavigation
 import kotlin.math.max
 
-class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : NestedScrollView(context, attrs, defStyle), OnBreadcrumbActiveListener
-{
-    init
-    {
-        overScrollMode = View.OVER_SCROLL_NEVER
-    }
-
+class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: AttributeSet? = null, defStyle: Int = 0) : NestedScrollView(context, attrs, defStyle), OnBreadcrumbActiveListener {
     val breadcrumbHeight by lazy {
         BreadcrumbInject.breadcrumbHeight
     }
 
-    private val initialScroll: Int
-        get()
-        {
-            return max(0, breadcrumbHeight * breadcrumbTitles.size)
-        }
-
     val contentView by lazy { getChildAt(0) as ViewGroup }
 
     var breadcrumbTitles: List<String> = emptyList()
-        set(value)
-        {
+        set(value) {
             field = value
             value.reversed().forEachIndexed { index, title ->
                 val bcv = BreadcrumbInject.breadcrumbView.invoke(context, this)
@@ -45,8 +33,7 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
                 lp.height = breadcrumbHeight
                 bcv.view.layoutParams = lp
                 bcv.view.setOnClickListener {
-                    if (breadcrumbsExpanded)
-                    {
+                    if (breadcrumbsExpanded) {
                         bcv.onActive()
                         breadcrumbNavigation?.goBackMultipleSteps(value.size - index)
                     }
@@ -55,23 +42,65 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
             jumpToInitialScrollState()
         }
 
+    private val initialScroll: Int
+        get() {
+            return max(0, breadcrumbHeight * breadcrumbTitles.size)
+        }
+
+    init {
+        overScrollMode = View.OVER_SCROLL_NEVER
+        breadcrumbTitles = emptyList()
+        isFillViewport = true
+    }
+
     var onBreadcrumbExpandedListener: OnBreadcrumbExpandedListener? = null
     var onBreadcrumbSelectedListener: OnBreadcrumbSelectedListener? = null
     var breadcrumbNavigation: BreadcrumbNavigation? = null
 
-    interface OnBreadcrumbSelectedListener
-    {
+    interface OnBreadcrumbSelectedListener {
         fun onBreadcrumbSelected(position: Int)
     }
 
-    private fun isBreadcrumbsVisible() = scrollY < initialScroll
+    fun setup(breadcrumbNavigation: BreadcrumbNavigation?, breadcrumbTrail: List<String>, expandIconView: View?, expandedListener: OnBreadcrumbExpandedListener?) {
+        breadcrumbTitles = breadcrumbTrail
+
+        this.breadcrumbNavigation = breadcrumbNavigation
+
+        expandIconView?.let {
+            onBreadcrumbExpandedListener = expandedListener
+            it.setOnClickListener {
+                if (breadcrumbsExpanded) {
+                    collapseBreadcrumbs()
+                } else {
+                    expandBreadcrumbs()
+                }
+            }
+        }
+
+        // listen to breadcrumbTitles selected
+        onBreadcrumbSelectedListener = object : BreadcrumbScrollView.OnBreadcrumbSelectedListener {
+            override fun onBreadcrumbSelected(position: Int) {
+                breadcrumbNavigation?.goBackMultipleSteps(breadcrumbTitles.size - position)
+            }
+        }
+    }
+
+    fun expandBreadcrumbs() {
+        post { scrollTo(0, 0) }
+        breadcrumbsExpanded = true
+        onBreadcrumbExpandedListener?.onBreadcrumbExpanded()
+    }
+
+    fun collapseBreadcrumbs() {
+        animateToInitialScrollState(DecelerateInterpolator())
+        breadcrumbsExpanded = false
+        onBreadcrumbExpandedListener?.onBreadcrumbCollapsed()
+    }
 
     var breadcrumbsExpanded = false
     private var isAnimating = false
-    fun animateToInitialScrollState(interpolator: Interpolator)
-    {
-        if (!isAnimating && !breadcrumbsExpanded)
-        {
+    fun animateToInitialScrollState(interpolator: Interpolator) {
+        if (!isAnimating && !breadcrumbsExpanded) {
             // stop fling
             fling(0)
 
@@ -82,15 +111,12 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
 
             animator.interpolator = interpolator
 
-            animator.addListener(object : Animator.AnimatorListener
-            {
-                override fun onAnimationEnd(p0: Animator?)
-                {
+            animator.addListener(object : Animator.AnimatorListener {
+                override fun onAnimationEnd(p0: Animator?) {
                     isAnimating = false
                 }
 
-                override fun onAnimationCancel(p0: Animator?)
-                {
+                override fun onAnimationCancel(p0: Animator?) {
                     isAnimating = false
                 }
 
@@ -101,85 +127,66 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
         }
     }
 
-    fun jumpToInitialScrollState()
-    {
+    fun jumpToInitialScrollState() {
         post { scrollTo(0, initialScroll) }
     }
 
-    fun expandBreadcrumbs()
-    {
-        post { scrollTo(0, 0) }
-    }
+    private fun isBreadcrumbsVisible() = scrollY < initialScroll
 
     private var selectedBreadcrumbPosition = -1
     private var selectedBreadcrumbActive = false
-    override fun onScrollChanged(x: Int, y: Int, oldX: Int, oldY: Int)
-    {
+    override fun onScrollChanged(x: Int, y: Int, oldX: Int, oldY: Int) {
         super.onScrollChanged(x, y, oldX, oldY)
 
-        if (!isTouchActive && isBreadcrumbsVisible())
-        {
+        if (!isTouchActive && isBreadcrumbsVisible()) {
             // bounce back to initial scroll state (hide breadcrumbs)
             postDelayed({ animateToInitialScrollState(AccelerateDecelerateInterpolator()) }, 100)
         }
 
-        if (!breadcrumbsExpanded)
-        {
+        if (!breadcrumbsExpanded) {
             updateBreadcrumbSelectionState(y)
         }
 
-        if (isTouchActive && breadcrumbsExpanded)
-        {
+        if (isTouchActive && breadcrumbsExpanded) {
             breadcrumbsExpanded = false
             onBreadcrumbExpandedListener?.onBreadcrumbCollapsed()
         }
     }
 
-    private fun updateBreadcrumbSelectionState(scrollY: Int)
-    {
+    private fun updateBreadcrumbSelectionState(scrollY: Int) {
         val newBreadcrumpSelected = (scrollY + breadcrumbHeight / 2) / breadcrumbHeight
-        if (newBreadcrumpSelected != selectedBreadcrumbPosition)
-        {
-            if (positionedAtBreadcrumb(newBreadcrumpSelected))
-            {
+        if (newBreadcrumpSelected != selectedBreadcrumbPosition) {
+            if (positionedAtBreadcrumb(newBreadcrumpSelected)) {
                 getBreadcrumbViewAt(selectedBreadcrumbPosition)?.onUnselect()
                 getBreadcrumbViewAt(newBreadcrumpSelected)?.onFirstSelect()
                 selectedBreadcrumbActive = false
-            }
-            else
-            {
+            } else {
                 getBreadcrumbViewAt(selectedBreadcrumbPosition)?.onUnselect()
             }
             selectedBreadcrumbPosition = newBreadcrumpSelected
         }
     }
 
-    private fun getBreadcrumbViewAt(position: Int): Breadcrumb?
-    {
+    private fun getBreadcrumbViewAt(position: Int): Breadcrumb? {
         return contentView.getChildAt(position) as? Breadcrumb
     }
 
     var isTouchActive = false
-    override fun onTouchEvent(event: MotionEvent): Boolean
-    {
+    override fun onTouchEvent(event: MotionEvent): Boolean {
         val onTouchEvent = super.onTouchEvent(event)
 
-        if (event.actionMasked == MotionEvent.ACTION_DOWN)
-        {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
             isTouchActive = true
         }
 
-        if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL)
-        {
+        if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
             isTouchActive = false
 
-            if (isBreadcrumbsVisible())
-            {
+            if (isBreadcrumbsVisible()) {
                 animateToInitialScrollState(DecelerateInterpolator())
             }
 
-            if (positionedAtBreadcrumb(selectedBreadcrumbPosition) && selectedBreadcrumbActive)
-            {
+            if (positionedAtBreadcrumb(selectedBreadcrumbPosition) && selectedBreadcrumbActive) {
                 onBreadcrumbSelectedListener?.onBreadcrumbSelected(selectedBreadcrumbPosition)
             }
         }
@@ -189,8 +196,42 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
 
     private fun positionedAtBreadcrumb(breadcrumbPosition: Int) = breadcrumbPosition >= 0 && breadcrumbPosition < breadcrumbTitles.size
 
-    override fun onSelectedBreadcrumbActive()
-    {
+    override fun onSelectedBreadcrumbActive() {
         selectedBreadcrumbActive = true
+    }
+
+    /**
+     * Overwrite fillViewport logic so enough space is filled up to be able to scroll to
+     * "initialScroll" state in which the breadcrumbs are hidden
+     */
+    override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec)
+
+        if (!isFillViewport) {
+            return
+        }
+
+        val heightMode = View.MeasureSpec.getMode(heightMeasureSpec)
+        if (heightMode == View.MeasureSpec.UNSPECIFIED) {
+            return
+        }
+
+        if (childCount > 0) {
+            val child = getChildAt(0)
+            var height = measuredHeight
+            if (child.measuredHeight - initialScroll < height) {
+                val lp = child.layoutParams as FrameLayout.LayoutParams
+
+                val childWidthMeasureSpec = ViewGroup.getChildMeasureSpec(widthMeasureSpec,
+                        paddingLeft + paddingRight, lp.width)
+                height -= paddingTop
+                height -= paddingBottom
+                height += initialScroll
+                val childHeightMeasureSpec = View.MeasureSpec.makeMeasureSpec(height, View.MeasureSpec.EXACTLY)
+
+                child.measure(childWidthMeasureSpec, childHeightMeasureSpec)
+            }
+        }
+        jumpToInitialScrollState()
     }
 }

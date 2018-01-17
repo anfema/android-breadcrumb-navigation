@@ -7,7 +7,7 @@ import android.support.v7.app.AppCompatActivity
 /**
  * If you cannot inherit your from [BreadcrumbActivity] directly, use [BreadcrumbActivityHelper].
  */
-abstract class BreadcrumbActivity : AppCompatActivity(), BreadcrumbComponent, BreadcrumbNavigation
+abstract class BreadcrumbActivity : AppCompatActivity(), BreadcrumbComponent
 {
     protected lateinit var breadcrumbHelper: BreadcrumbActivityHelper
 
@@ -15,17 +15,11 @@ abstract class BreadcrumbActivity : AppCompatActivity(), BreadcrumbComponent, Br
     {
         super.onCreate(savedInstanceState)
         breadcrumbHelper = BreadcrumbActivityHelper(this)
-        breadcrumbHelper.checkIfGoBackIntent()
     }
 
     override fun startBreadcrumbActivity(intent: Intent, breadcrumbTitle: String, options: Bundle?)
     {
         breadcrumbHelper.addBreadcrumbEssentials(intent, breadcrumbTitle)
         super.startActivity(intent)
-    }
-
-    override fun goBackMultipleSteps(steps: Int)
-    {
-        breadcrumbHelper.goBackMultipleSteps(steps)
     }
 }

@@ -4,6 +4,10 @@ import android.content.Intent
 
 open class BreadcrumbActivityHelper(private val breadcrumbComponent: BreadcrumbComponent) : BreadcrumbNavigation
 {
+    init
+    {
+        checkIfGoBackIntent()
+    }
 
     fun checkIfGoBackIntent()
     {
@@ -41,7 +45,7 @@ open class BreadcrumbActivityHelper(private val breadcrumbComponent: BreadcrumbC
         intent.putExtra(BREADCRUMB_TRAIL, nextBreadcrumbTrail)
     }
 
-    fun getBreadcrumbTrail(intent: Intent?): java.util.ArrayList<String>
+    override fun getBreadcrumbTrail(intent: Intent?): java.util.ArrayList<String>
     {
         return intent?.getStringArrayListExtra(BREADCRUMB_TRAIL) ?: ArrayList()
     }

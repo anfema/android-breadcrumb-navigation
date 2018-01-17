@@ -80,7 +80,10 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
         // listen to breadcrumbTitles selected
         onBreadcrumbSelectedListener = object : BreadcrumbScrollView.OnBreadcrumbSelectedListener {
             override fun onBreadcrumbSelected(position: Int) {
-                breadcrumbNavigation?.goBackMultipleSteps(breadcrumbTitles.size - position)
+                breadcrumbNavigation?.let {
+                    it.goBackMultipleSteps(breadcrumbTitles.size - position)
+                    getBreadcrumbViewAt(position)?.onSelected()
+                }
             }
         }
     }
@@ -157,11 +160,11 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
         val newBreadcrumpSelected = (scrollY + breadcrumbHeight / 2) / breadcrumbHeight
         if (newBreadcrumpSelected != selectedBreadcrumbPosition) {
             if (positionedAtBreadcrumb(newBreadcrumpSelected)) {
-                getBreadcrumbViewAt(selectedBreadcrumbPosition)?.onUnselect()
-                getBreadcrumbViewAt(newBreadcrumpSelected)?.onFirstSelect()
+                getBreadcrumbViewAt(selectedBreadcrumbPosition)?.onInactive()
+                getBreadcrumbViewAt(newBreadcrumpSelected)?.onHover()
                 selectedBreadcrumbActive = false
             } else {
-                getBreadcrumbViewAt(selectedBreadcrumbPosition)?.onUnselect()
+                getBreadcrumbViewAt(selectedBreadcrumbPosition)?.onInactive()
             }
             selectedBreadcrumbPosition = newBreadcrumpSelected
         }

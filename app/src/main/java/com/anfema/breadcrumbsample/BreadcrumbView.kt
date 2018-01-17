@@ -31,7 +31,17 @@ class BreadcrumbView(context: Context, override var onBreadcrumbActiveListener: 
         setTextColor(Color.WHITE)
     }
 
-    override fun onFirstSelect()
+    override fun onInactive()
+    {
+        Log.d("BreadcrumbView", "unselected")
+        setBackgroundColor(Color.BLACK)
+        delayedExecution?.let {
+            delayedExecution?.dispose()
+            delayedExecution = null
+        }
+    }
+
+    override fun onHover()
     {
         Log.d("BreadcrumbView", "selected")
         setBackgroundColor(Color.GRAY)
@@ -44,19 +54,13 @@ class BreadcrumbView(context: Context, override var onBreadcrumbActiveListener: 
 
     override fun onActive()
     {
-        vibrate()
         setBackgroundColor(Color.BLUE)
         onBreadcrumbActiveListener?.onSelectedBreadcrumbActive()
     }
 
-    override fun onUnselect()
+    fun onSelected()
     {
-        Log.d("BreadcrumbView", "unselected")
-        setBackgroundColor(Color.BLACK)
-        delayedExecution?.let {
-            delayedExecution?.dispose()
-            delayedExecution = null
-        }
+        vibrate()
     }
 
     @Suppress("DEPRECATION")

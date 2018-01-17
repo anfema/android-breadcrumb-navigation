@@ -8,8 +8,9 @@ interface Breadcrumb
 
     var onBreadcrumbActiveListener: OnBreadcrumbActiveListener?
 
-    fun onFirstSelect()
+    fun onInactive()
+    fun onHover()
     fun onActive()
-    fun onUnselect()
+    fun onSelected()
     fun setText(text: CharSequence)
 }

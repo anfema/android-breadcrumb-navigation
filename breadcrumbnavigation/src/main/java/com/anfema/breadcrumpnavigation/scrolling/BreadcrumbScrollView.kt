@@ -22,7 +22,7 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
 
     val contentView by lazy { getChildAt(0) as ViewGroup }
 
-    var breadcrumbTitles: List<String> = emptyList()
+    private var breadcrumbTitles: List<String> = emptyList()
         set(value) {
             field = value
             value.reversed().forEachIndexed { index, title ->
@@ -62,6 +62,11 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
     }
 
     fun setup(breadcrumbNavigation: BreadcrumbNavigation?, breadcrumbTrail: List<String>, expandIconView: View?, expandedListener: OnBreadcrumbExpandedListener?) {
+        if (breadcrumbTitles.isNotEmpty()) {
+            // ensure setup method only is called only once
+            return
+        }
+
         breadcrumbTitles = breadcrumbTrail
 
         this.breadcrumbNavigation = breadcrumbNavigation
@@ -175,6 +180,19 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
     }
 
     var isTouchActive = false
+        set(value) {
+            field = value
+            if (!value) {
+                if (isBreadcrumbsVisible()) {
+                    animateToInitialScrollState(DecelerateInterpolator())
+                }
+
+                if (positionedAtBreadcrumb(selectedBreadcrumbPosition) && selectedBreadcrumbActive) {
+                    onBreadcrumbSelectedListener?.onBreadcrumbSelected(selectedBreadcrumbPosition)
+                }
+            }
+        }
+
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val onTouchEvent = super.onTouchEvent(event)
 
@@ -184,17 +202,20 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
 
         if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
             isTouchActive = false
-
-            if (isBreadcrumbsVisible()) {
-                animateToInitialScrollState(DecelerateInterpolator())
-            }
-
-            if (positionedAtBreadcrumb(selectedBreadcrumbPosition) && selectedBreadcrumbActive) {
-                onBreadcrumbSelectedListener?.onBreadcrumbSelected(selectedBreadcrumbPosition)
-            }
         }
 
         return onTouchEvent
+    }
+
+    override fun onStartNestedScroll(child: View, target: View, nestedScrollAxes: Int): Boolean {
+        val onStartNestedScroll = super.onStartNestedScroll(child, target, nestedScrollAxes)
+        isTouchActive = true
+        return onStartNestedScroll
+    }
+
+    override fun onStopNestedScroll(target: View) {
+        super.onStopNestedScroll(target)
+        isTouchActive = false
     }
 
     private fun positionedAtBreadcrumb(breadcrumbPosition: Int) = breadcrumbPosition >= 0 && breadcrumbPosition < breadcrumbTitles.size

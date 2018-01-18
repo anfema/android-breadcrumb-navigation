@@ -201,7 +201,7 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
     override fun onTouchEvent(event: MotionEvent): Boolean {
         val onTouchEvent = super.onTouchEvent(event)
 
-        if (event.actionMasked == MotionEvent.ACTION_DOWN) {
+        if (event.actionMasked == MotionEvent.ACTION_DOWN || event.actionMasked == MotionEvent.ACTION_MOVE) {
             isTouchActive = true
         }
 

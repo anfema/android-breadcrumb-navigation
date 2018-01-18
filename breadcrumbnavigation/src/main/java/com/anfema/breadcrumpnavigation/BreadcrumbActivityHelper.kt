@@ -26,6 +26,7 @@ open class BreadcrumbActivityHelper(private val breadcrumbComponent: BreadcrumbC
             steps == 1 -> breadcrumbComponent.finish() // only current breadcrumbComponent has to be closed
             steps > 1  ->
             {
+                breadcrumbComponent.finish()
                 // at least parent breadcrumbComponent has to be closed too
                 breadcrumbComponent.getIntent()?.getParcelableExtra<Intent>(BREADCRUMB_PARENT_INTENT)?.let {
                     it.putExtra(BREADCRUMB_BACK_STEPS_REMAINING, steps - 1)

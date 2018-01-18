@@ -141,7 +141,11 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
 
     private fun isBreadcrumbsVisible() = scrollY < initialScroll
 
-    private var selectedBreadcrumbPosition = -1
+    companion object {
+        const val NOT_SCROLLED_TO_BREADCRUMB = -1
+    }
+
+    private var selectedBreadcrumbPosition = NOT_SCROLLED_TO_BREADCRUMB
     private var selectedBreadcrumbActive = false
     override fun onScrollChanged(x: Int, y: Int, oldX: Int, oldY: Int) {
         super.onScrollChanged(x, y, oldX, oldY)
@@ -167,11 +171,12 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
             if (positionedAtBreadcrumb(newBreadcrumpSelected)) {
                 getBreadcrumbViewAt(selectedBreadcrumbPosition)?.onInactive()
                 getBreadcrumbViewAt(newBreadcrumpSelected)?.onHover()
+                selectedBreadcrumbPosition = newBreadcrumpSelected
                 selectedBreadcrumbActive = false
             } else {
                 getBreadcrumbViewAt(selectedBreadcrumbPosition)?.onInactive()
+                selectedBreadcrumbPosition = NOT_SCROLLED_TO_BREADCRUMB
             }
-            selectedBreadcrumbPosition = newBreadcrumpSelected
         }
     }
 

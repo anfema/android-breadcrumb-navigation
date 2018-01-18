@@ -198,9 +198,7 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
             }
         }
 
-    override fun onTouchEvent(event: MotionEvent): Boolean {
-        val onTouchEvent = super.onTouchEvent(event)
-
+    private fun updateIsTouchActive(event: MotionEvent) {
         if (event.actionMasked == MotionEvent.ACTION_DOWN || event.actionMasked == MotionEvent.ACTION_MOVE) {
             isTouchActive = true
         }
@@ -208,6 +206,20 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
         if (event.actionMasked == MotionEvent.ACTION_UP || event.actionMasked == MotionEvent.ACTION_CANCEL) {
             isTouchActive = false
         }
+    }
+
+    override fun onInterceptTouchEvent(event: MotionEvent): Boolean {
+        val touchEventConsumed = super.onInterceptTouchEvent(event)
+
+        updateIsTouchActive(event)
+
+        return touchEventConsumed
+    }
+
+    override fun onTouchEvent(event: MotionEvent): Boolean {
+        val onTouchEvent = super.onTouchEvent(event)
+
+        updateIsTouchActive(event)
 
         return onTouchEvent
     }

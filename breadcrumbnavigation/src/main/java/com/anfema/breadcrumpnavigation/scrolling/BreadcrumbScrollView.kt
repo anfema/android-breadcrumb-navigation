@@ -256,6 +256,5 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
                 child.measure(childWidthMeasureSpec, childHeightMeasureSpec)
             }
         }
-        jumpToInitialScrollState()
     }
 }

@@ -8,12 +8,10 @@ abstract class BreadcrumbScrollActivity : BreadcrumbActivity(), OnBreadcrumbExpa
 {
     abstract val expandIconView: View?
 
-    override fun onStart() {
-        super.onStart()
-        setupScrollView()
-    }
-
-    private fun setupScrollView(){
+    /**
+     * This method needs to be called in onCreate() after setContentView()!
+     */
+    protected fun setupScrollView(){
         val scrollView = findViewById<ViewGroup>(android.R.id.content).getChildAt(0) as? BreadcrumbScrollView
         val breadcrumbTrail = breadcrumbHelper.getBreadcrumbTrail(intent)
         scrollView?.setup(breadcrumbHelper, breadcrumbTrail, expandIconView, expandedListener = this)

@@ -2,6 +2,9 @@ package com.anfema.breadcrumpnavigation
 
 import android.content.Intent
 
+/**
+ * initialize in [android.app.Activity.onCreate]
+ */
 open class BreadcrumbActivityHelper(private val breadcrumbComponent: BreadcrumbComponent) : BreadcrumbNavigation
 {
     init
@@ -30,7 +33,7 @@ open class BreadcrumbActivityHelper(private val breadcrumbComponent: BreadcrumbC
                 // at least parent breadcrumbComponent has to be closed too
                 breadcrumbComponent.getIntent()?.getParcelableExtra<Intent>(BREADCRUMB_PARENT_INTENT)?.let {
                     it.putExtra(BREADCRUMB_BACK_STEPS_REMAINING, steps - 1)
-                    it.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    it.flags = Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP
                     breadcrumbComponent.startActivity(it)
                 }
             }

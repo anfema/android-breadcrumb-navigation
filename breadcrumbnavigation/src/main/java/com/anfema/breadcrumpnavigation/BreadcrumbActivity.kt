@@ -17,6 +17,12 @@ abstract class BreadcrumbActivity : AppCompatActivity(), BreadcrumbComponent
         breadcrumbHelper = BreadcrumbActivityHelper(this)
     }
 
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        breadcrumbHelper.checkIfGoBackIntent()
+    }
+
     override fun startBreadcrumbActivity(intent: Intent, breadcrumbTitle: String, options: Bundle?)
     {
         breadcrumbHelper.addBreadcrumbEssentials(intent, breadcrumbTitle)

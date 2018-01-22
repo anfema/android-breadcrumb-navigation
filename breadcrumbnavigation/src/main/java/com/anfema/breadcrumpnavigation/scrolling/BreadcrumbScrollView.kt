@@ -49,7 +49,6 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
 
     init {
         overScrollMode = View.OVER_SCROLL_NEVER
-        breadcrumbTitles = emptyList()
         isFillViewport = true
     }
 
@@ -67,30 +66,32 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
             return
         }
 
-        breadcrumbTitles = breadcrumbTrail
+        post({
+            breadcrumbTitles = breadcrumbTrail
 
-        this.breadcrumbNavigation = breadcrumbNavigation
+            this.breadcrumbNavigation = breadcrumbNavigation
 
-        expandIconView?.let {
-            onBreadcrumbExpandedListener = expandedListener
-            it.setOnClickListener {
-                if (breadcrumbsExpanded) {
-                    collapseBreadcrumbs()
-                } else {
-                    expandBreadcrumbs()
+            expandIconView?.let {
+                onBreadcrumbExpandedListener = expandedListener
+                it.setOnClickListener {
+                    if (breadcrumbsExpanded) {
+                        collapseBreadcrumbs()
+                    } else {
+                        expandBreadcrumbs()
+                    }
                 }
             }
-        }
 
-        // listen to breadcrumbTitles selected
-        onBreadcrumbSelectedListener = object : BreadcrumbScrollView.OnBreadcrumbSelectedListener {
-            override fun onBreadcrumbSelected(position: Int) {
-                breadcrumbNavigation?.let {
-                    it.goBackMultipleSteps(breadcrumbTitles.size - position)
-                    getBreadcrumbViewAt(position)?.onSelected()
+            // listen to breadcrumbTitles selected
+            onBreadcrumbSelectedListener = object : BreadcrumbScrollView.OnBreadcrumbSelectedListener {
+                override fun onBreadcrumbSelected(position: Int) {
+                    breadcrumbNavigation?.let {
+                        it.goBackMultipleSteps(breadcrumbTitles.size - position)
+                        getBreadcrumbViewAt(position)?.onSelected()
+                    }
                 }
             }
-        }
+        })
     }
 
     fun expandBreadcrumbs() {

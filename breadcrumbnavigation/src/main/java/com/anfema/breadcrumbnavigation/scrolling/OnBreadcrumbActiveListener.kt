@@ -1,4 +1,4 @@
-package com.anfema.breadcrumpnavigation.scrolling
+package com.anfema.breadcrumbnavigation.scrolling
 
 interface OnBreadcrumbActiveListener
 {

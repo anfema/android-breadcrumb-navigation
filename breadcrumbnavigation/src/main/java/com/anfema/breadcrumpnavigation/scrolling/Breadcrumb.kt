@@ -13,4 +13,6 @@ interface Breadcrumb
     fun onActive()
     fun onSelected()
     fun setText(text: CharSequence)
+    fun activateExpandedMode()
+    fun deactivateExpandedMode()
 }

@@ -1,6 +1,7 @@
 package com.anfema.breadcrumpnavigation.scrolling
 
 import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.animation.ObjectAnimator
 import android.content.Context
 import android.support.v4.widget.NestedScrollView
@@ -25,27 +26,32 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
     private var breadcrumbTitles: List<String> = emptyList()
         set(value) {
             field = value
-            value.reversed().forEachIndexed { index, title ->
-                val bcv = BreadcrumbInject.breadcrumbView.invoke(context, this)
-                bcv.setText(title)
-                contentView.addView(bcv.view, 0)
-                val lp = bcv.view.layoutParams
-                lp.height = breadcrumbHeight
-                bcv.view.layoutParams = lp
-                bcv.view.setOnClickListener {
-                    if (breadcrumbsExpanded) {
-                        bcv.onActive()
-                        breadcrumbNavigation?.goBackMultipleSteps(value.size - index)
-                    }
-                }
-            }
+            value.reversed().mapIndexed { index, title ->
+                setupBreadcrumb(title, value.size - index)
+            }.also { breadcrumbs = it }
             jumpToInitialScrollState()
         }
 
-    private val initialScroll: Int
-        get() {
-            return max(0, breadcrumbHeight * breadcrumbTitles.size)
+    private var breadcrumbs: List<Breadcrumb> = emptyList()
+
+    private fun setupBreadcrumb(title: String, goBackSteps: Int): Breadcrumb {
+        val bcv = BreadcrumbInject.breadcrumbView.invoke(context, this)
+        bcv.setText(title)
+        contentView.addView(bcv.view, 0)
+        val lp = bcv.view.layoutParams
+        lp.height = breadcrumbHeight
+        bcv.view.layoutParams = lp
+        bcv.view.setOnClickListener {
+            if (breadcrumbsExpanded) {
+                bcv.onActive()
+                breadcrumbNavigation?.goBackMultipleSteps(goBackSteps)
+            }
         }
+        return bcv
+    }
+
+    private val initialScroll: Int
+        get() = max(0, breadcrumbHeight * breadcrumbs.size)
 
     init {
         overScrollMode = View.OVER_SCROLL_NEVER
@@ -61,7 +67,7 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
     }
 
     fun setup(breadcrumbNavigation: BreadcrumbNavigation?, breadcrumbTrail: List<String>, expandIconView: View?, expandedListener: OnBreadcrumbExpandedListener?) {
-        if (breadcrumbTitles.isNotEmpty()) {
+        if (breadcrumbs.isNotEmpty()) {
             // ensure setup method only is called only once
             return
         }
@@ -82,11 +88,11 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
                 }
             }
 
-            // listen to breadcrumbTitles selected
+            // listen to breadcrumbs selected
             onBreadcrumbSelectedListener = object : BreadcrumbScrollView.OnBreadcrumbSelectedListener {
                 override fun onBreadcrumbSelected(position: Int) {
                     breadcrumbNavigation?.let {
-                        it.goBackMultipleSteps(breadcrumbTitles.size - position)
+                        it.goBackMultipleSteps(breadcrumbs.size - position)
                         getBreadcrumbViewAt(position)?.onSelected()
                     }
                 }
@@ -94,43 +100,62 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
         })
     }
 
+    private var breadcrumbsExpanded = false
+        set(expanded) {
+            field = expanded
+            if (expanded) {
+                breadcrumbs.forEach { it.activateExpandedMode() }
+            } else {
+                breadcrumbs.forEach { it.deactivateExpandedMode() }
+            }
+        }
+
     fun expandBreadcrumbs() {
-        post { scrollTo(0, 0) }
+        if (isAnimatingScroll) {
+            return
+        }
+
         breadcrumbsExpanded = true
         onBreadcrumbExpandedListener?.onBreadcrumbExpanded()
+        animateScroll(0, AccelerateDecelerateInterpolator())
     }
 
     fun collapseBreadcrumbs() {
-        animateToInitialScrollState(DecelerateInterpolator())
-        breadcrumbsExpanded = false
+        if (isAnimatingScroll) {
+            return
+        }
+
         onBreadcrumbExpandedListener?.onBreadcrumbCollapsed()
+        animateToCollapsedState(AccelerateDecelerateInterpolator(), forceScroll = true, onFinished = { breadcrumbsExpanded = false })
     }
 
-    var breadcrumbsExpanded = false
-    private var isAnimating = false
-    fun animateToInitialScrollState(interpolator: Interpolator) {
-        if (!isAnimating && !breadcrumbsExpanded) {
+    fun animateToCollapsedState(interpolator: Interpolator, forceScroll: Boolean = false, onFinished: (() -> Unit)? = null) {
+        if (!breadcrumbsExpanded || forceScroll) {
+            animateScroll(initialScroll, interpolator, onFinished)
+        }
+    }
+
+    private var isAnimatingScroll = false
+    private fun animateScroll(scrollY: Int, interpolator: Interpolator, onFinished: (() -> Unit)? = null) {
+        if (!isAnimatingScroll) {
             // stop fling
             fling(0)
 
-            isAnimating = true
-
-            val animator = ObjectAnimator.ofInt(this, "scrollY", initialScroll)
+            isAnimatingScroll = true
+            val animator = ObjectAnimator.ofInt(this, "scrollY", scrollY)
                     .setDuration(300)
 
             animator.interpolator = interpolator
 
-            animator.addListener(object : Animator.AnimatorListener {
+            animator.addListener(object : AnimatorListenerAdapter() {
                 override fun onAnimationEnd(p0: Animator?) {
-                    isAnimating = false
+                    isAnimatingScroll = false
+                    onFinished?.invoke()
                 }
 
                 override fun onAnimationCancel(p0: Animator?) {
-                    isAnimating = false
+                    isAnimatingScroll = false
                 }
-
-                override fun onAnimationStart(p0: Animator?) = Unit
-                override fun onAnimationRepeat(p0: Animator?) = Unit
             })
             animator.start()
         }
@@ -153,7 +178,7 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
 
         if (!isTouchActive && isBreadcrumbsVisible()) {
             // bounce back to initial scroll state (hide breadcrumbs)
-            postDelayed({ animateToInitialScrollState(AccelerateDecelerateInterpolator()) }, 100)
+            postDelayed({ animateToCollapsedState(AccelerateDecelerateInterpolator()) }, 100)
         }
 
         if (!breadcrumbsExpanded) {
@@ -190,7 +215,7 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
             field = value
             if (!value) {
                 if (isBreadcrumbsVisible()) {
-                    animateToInitialScrollState(DecelerateInterpolator())
+                    animateToCollapsedState(DecelerateInterpolator())
                 }
 
                 if (positionedAtBreadcrumb(selectedBreadcrumbPosition) && selectedBreadcrumbActive) {
@@ -236,7 +261,7 @@ class BreadcrumbScrollView @JvmOverloads constructor(context: Context, attrs: At
         isTouchActive = false
     }
 
-    private fun positionedAtBreadcrumb(breadcrumbPosition: Int) = breadcrumbPosition >= 0 && breadcrumbPosition < breadcrumbTitles.size
+    private fun positionedAtBreadcrumb(breadcrumbPosition: Int) = breadcrumbPosition >= 0 && breadcrumbPosition < breadcrumbs.size
 
     override fun onSelectedBreadcrumbActive() {
         selectedBreadcrumbActive = true

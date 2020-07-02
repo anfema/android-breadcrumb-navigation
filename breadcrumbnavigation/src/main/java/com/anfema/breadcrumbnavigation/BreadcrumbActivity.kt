@@ -2,7 +2,7 @@ package com.anfema.breadcrumbnavigation
 
 import android.content.Intent
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 
 /**
  * If you cannot inherit your from [BreadcrumbActivity] directly, use [BreadcrumbActivityHelper].
